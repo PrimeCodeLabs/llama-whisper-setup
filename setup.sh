@@ -90,98 +90,61 @@ if ! command -v python3 &> /dev/null || ! [[ "$(printf '%s\n' "$required_version
   esac
 fi
 
-
-# Check if git-lfs is installed; if not, install it using Homebrew
-if ! command -v git-lfs &> /dev/null; then
-  echo "git-lfs not found, installing using Homebrew..."
-  brew install git-lfs
-  git lfs install
+if [ ! -d 'models' ]; then
+  mkdir -p models
 fi
 
-# Step 1
+if [ ! -f "models/added_tokens.json" ]; then
+  curl -H "Accept: application/json" https://huggingface.co/chavinlo/gpt4-x-alpaca/resolve/main/added_tokens.json -o models/added_tokens.json
+fi
+
 if [ ! -d "llama.cpp" ]; then
   git clone https://github.com/ggerganov/llama.cpp
 fi
 
 pushd llama.cpp
-
-# Step 2
 make
+popd
 
 repo_url="https://huggingface.co/decapoda-research/llama-7b-hf"
 file_path="tokenizer.model"
-output_file="tokenizer.model"
 folder_name="llama-7b-hf"
 
-
-if [ ! -d "$folder_name" ]; then
-  export GIT_LFS_SKIP_SMUDGE=1
-  # Clone the repository without downloading LFS files automatically
-  git clone "$repo_url" "$folder_name"
-
-  # Navigate to the cloned repository directory
-  pushd "$folder_name"
-
-  # Pull the specific LFS file
-  git lfs pull --include "$file_path"
-
-  # Navigate back to the original directory
-  popd
+if [ ! -f 'models/tokenizer.model' ]; then
+export GIT_LFS_SKIP_SMUDGE=1
+git clone "$repo_url" "$folder_name"
+pushd "$folder_name"
+git lfs pull --include "$file_path"
+cp "$file_path" ../models/
+popd
 fi
-# echo current directory
-pwd
-cp "$folder_name/$file_path" models/
 
-# Step 4
-if [ ! -d "gpt4-x-alpaca" ]; then
-  git clone https://huggingface.co/chavinlo/gpt4-x-alpaca
-fi
-cp gpt4-x-alpaca/added_tokens.json models/
-
-# Step 5
 mkdir -p models/gpt4all
 if [ ! -f "models/gpt4all/gpt4all-lora-quantized.bin" ]; then
-  curl -L -o models/gpt4all/gpt4all-lora-quantized.bin https://the-eye.eu/public/AI/models/nomic-ai/gpt4all/gpt4all-lora-quantized.bin
+curl -L -o models/gpt4all/gpt4all-lora-quantized.bin https://the-eye.eu/public/AI/models/nomic-ai/gpt4all/gpt4all-lora-quantized.bin
 fi
 
 if [ ! -f "models/gpt4all/ggml-model-q4_0.bin" ]; then
-  python3 -m venv venv
-  ./venv/bin/python3 -m pip install -r requirements.txt && ./venv/bin/python3 -m pip install --upgrade pip
-  ./venv/bin/python3 convert.py models/gpt4all/gpt4all-lora-quantized.bin
+python3 -m venv venv
+./venv/bin/python3 -m pip install -r llama.cpp/requirements.txt && ./venv/bin/python3 -m pip install --upgrade pip
+./venv/bin/python3 llama.cpp/convert.py models/gpt4all/gpt4all-lora-quantized.bin
+# cp models/gpt4all/ggml-model-q4_0.bin ../models/gpt4all/
 fi
 
-popd
-
-# Step 6
 if [ ! -d "whisper" ]; then
-  git clone https://github.com/ggerganov/whisper.cpp.git whisper
+git clone https://github.com/ggerganov/whisper.cpp.git whisper
 fi
 
 pushd whisper
 git checkout master
 
-# Step 6.1
 if [ ! -f "models/ggml-small.en.bin" ]; then
-  bash ./models/download-ggml-model.sh base.en
+bash ./models/download-ggml-model.sh base.en
 fi
 
-# Step 6.2
 make
-
-# Step 6.2 (continued)
-if ! command -v make &> /dev/null; then
-  echo "make not found. Please ensure it is installed and in your PATH." >&2
-  exit 1
-fi
-
 make talk-llama
 
-# Step 6.3
-if ! command -v ./talk-llama &> /dev/null; then
-  echo "talk-llama not found. Please ensure it is built successfully." >&2
-  exit 1
-fi
-
-./talk-llama -mw ./models/ggml-base.en.bin -ml ../llama.cpp/models/gpt4all/ggml-model-q4_0.bin -p "${name}" -t 8
+./talk-llama -mw ./models/ggml-base.en.bin -ml ../models/gpt4all/ggml-model-q4_0.bin -p "${name}" -t 8
 
 popd

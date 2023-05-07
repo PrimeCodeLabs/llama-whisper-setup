@@ -1,3 +1,15 @@
-llama.cpp
-whisper
+models/
+llama.cpp/
+llama-7b-hf/
+whisper/
+venv/
+*.bin
+*.o
+*.a
+*.swp
+*.swo
+pycache/
+*.pyc
+*.pyo
+*.pyd
 .DS_Store
