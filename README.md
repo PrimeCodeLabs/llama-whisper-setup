@@ -6,15 +6,14 @@ This project sets up a local environment to run the Llama Chatbot with GPT-4 mod
 
 Before running the script, ensure that the following software is installed and added to your PATH:
 
-Git
-
+- Git
 - Python 3.11 or later
 - Make for Windows (for Windows users)
 - cURL
 
 ## Usage
 
-### Windows
+### Windows
 
 Open the Command Prompt, navigate to the directory containing the setup.bat file, and run the script with the following command:
 
