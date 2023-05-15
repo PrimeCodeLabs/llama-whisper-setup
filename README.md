@@ -1,6 +1,6 @@
 # Project Overview
 
-This project sets up a local environment to run the Llama Chatbot with GPT-4 model support. It automates the process of downloading and preparing the required components, including the Llama Chatbot, the tokenizer, and the GPT-4 model.
+This project sets up a local environment to run the Llama Chatbot with GPT4All model support. It automates the process of downloading and preparing the required components, including the Llama Chatbot, the tokenizer, and the GPT4All model.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ Before running the script, ensure that the following software is installed and a
 
 ## Usage
 
-### Windows
+### Windows (Not tested)
 
 Open the Command Prompt, navigate to the directory containing the setup.bat file, and run the script with the following command:
 
